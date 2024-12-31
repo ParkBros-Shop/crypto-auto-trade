@@ -1,0 +1,72 @@
+import React, { useEffect, useState } from 'react';
+
+function Home() {
+  const [users, setUsers] = useState([]);
+  const [accountInfo, setAccountInfo] = useState([]);
+  const [markets, setMarkets] = useState([]);
+
+  useEffect(() => {
+    // 유저 데이터 가져오기
+    fetch('http://localhost:19011/users', { method: 'GET' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && Array.isArray(data.data)) {
+        setUsers(data.data); // 응답에서 `data.data` 사용
+      } else {
+        setUsers([]); // 실패 시 빈 배열
+      }
+    })
+    .catch(err => console.error('유저 데이터 오류:', err));
+
+    // 업비트 계정 정보 가져오기
+    fetch('http://localhost:19011/upbit/account', { method: 'GET' })
+      .then(res => res.json())
+      .then(data => setAccountInfo(Array.isArray(data) ? data : []))
+      .catch(err => console.error('업비트 계정 오류:', err));
+
+    // 모든 마켓 정보 가져오기
+    fetch('http://localhost:19011/upbit/markets/all', { method: 'GET' })
+      .then(res => res.json())
+      .then(data => setMarkets(Array.isArray(data) ? data : []))
+      .catch(err => console.error('마켓 데이터 오류:', err));
+  }, []);
+
+  return (
+    <div>
+      <h2>유저 목록</h2>
+      <ul>
+        {users.length > 0 ? (
+          users.map(user => (
+            <li key={user.id}>{user.name} ({user.email})</li>
+          ))
+        ) : (
+          <p>유저 데이터가 없습니다.</p>
+        )}
+      </ul>
+
+      <h2>업비트 계정 정보</h2>
+      <ul>
+        {accountInfo.length > 0 ? (
+          accountInfo.map(info => (
+            <li key={info.currency}>{info.currency}: {info.balance}</li>
+          ))
+        ) : (
+          <p>계정 정보가 없습니다.</p>
+        )}
+      </ul>
+
+      <h2>마켓 목록</h2>
+      <ul>
+        {markets.length > 0 ? (
+          markets.map(market => (
+            <li key={market.market}>{market.market} - {market.korean_name}</li>
+          ))
+        ) : (
+          <p>마켓 데이터가 없습니다.</p>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+export default Home;
